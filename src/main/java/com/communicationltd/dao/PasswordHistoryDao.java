@@ -2,6 +2,7 @@ package com.communicationltd.dao;
 
 import com.communicationltd.config.PasswordPolicyConfig;
 import com.communicationltd.security.PasswordHasher;
+import com.communicationltd.security.SecurityUtil;
 import com.communicationltd.util.DatabaseConnection;
 
 import java.sql.*;
@@ -30,7 +31,7 @@ public class PasswordHistoryDao {
 
                 String newHashWithOldSalt = PasswordHasher.hash(newPassword, oldSalt);
 
-                if (oldHash.equals(newHashWithOldSalt)) {
+                if (SecurityUtil.constantTimeEquals(oldHash, newHashWithOldSalt)) {
                     return true;
                 }
             }

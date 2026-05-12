@@ -2,6 +2,7 @@ package com.communicationltd.controller;
 
 import com.communicationltd.security.TokenGenerator;
 import com.communicationltd.dao.UserDao;
+import com.communicationltd.security.InputSanitizer;
 import com.communicationltd.util.DatabaseConnection;
 import com.communicationltd.util.EmailSender;
 
@@ -18,7 +19,12 @@ public class ForgotPasswordServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
 
-        String email = request.getParameter("email");
+        String email = InputSanitizer.normalize(request.getParameter("email")).toLowerCase();
+
+        if (!InputSanitizer.isValidEmail(email)) {
+            showForgotPasswordError(request, response, "Email address is invalid");
+            return;
+        }
 
         if (!UserDao.emailExists(email)) {
             showForgotPasswordError(request, response, "User does not exist");
@@ -26,13 +32,14 @@ public class ForgotPasswordServlet extends HttpServlet {
         }
 
         String token = TokenGenerator.generateToken(email);
+        String tokenHash = TokenGenerator.hashToken(email, token);
 
         try (Connection conn = DatabaseConnection.getConnection()) {
 
             String sql = "INSERT INTO password_reset_tokens(email, token_hash, used) VALUES (?, ?, 0)";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, email);
-            ps.setString(2, token);
+            ps.setString(2, tokenHash);
             ps.executeUpdate();
 
             EmailSender.sendResetCode(email, token);

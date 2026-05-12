@@ -1,5 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ page import="org.apache.commons.text.StringEscapeUtils" %>
+<%
+    if (session == null || session.getAttribute("resetEmail") == null) {
+        response.sendRedirect("forgot-password.jsp");
+        return;
+    }
+%>
 <html>
 <head>
     <title>New Password</title>

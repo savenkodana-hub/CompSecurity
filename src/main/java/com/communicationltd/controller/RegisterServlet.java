@@ -1,6 +1,7 @@
 package com.communicationltd.controller;
 
 import com.communicationltd.dao.UserDao;
+import com.communicationltd.security.InputSanitizer;
 import com.communicationltd.security.PasswordHasher;
 import com.communicationltd.security.PasswordValidator;
 
@@ -15,9 +16,19 @@ public class RegisterServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String username = request.getParameter("username");
-        String email = request.getParameter("email");
+        String username = InputSanitizer.normalize(request.getParameter("username"));
+        String email = InputSanitizer.normalize(request.getParameter("email")).toLowerCase();
         String password = request.getParameter("password");
+
+        if (!InputSanitizer.isValidUsername(username)) {
+            showRegisterError(request, response, "Username must be 3-40 characters and contain only letters, numbers, dot, dash or underscore");
+            return;
+        }
+
+        if (!InputSanitizer.isValidEmail(email)) {
+            showRegisterError(request, response, "Email address is invalid");
+            return;
+        }
 
         String validation = PasswordValidator.validate(password);
         if (validation != null) {

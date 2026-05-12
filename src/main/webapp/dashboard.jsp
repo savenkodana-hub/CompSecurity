@@ -1,5 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="org.apache.commons.text.StringEscapeUtils" %>
+<%
+    if (session == null || session.getAttribute("email") == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+%>
 <html>
 <head>
     <title>Dashboard</title>
@@ -21,7 +27,7 @@
         </div>
         <nav class="nav-actions">
             <a class="btn btn-secondary" href="change-password.jsp">Change Password</a>
-            <a class="btn" href="index.jsp">Logout</a>
+            <a class="btn" href="<%= request.getContextPath() %>/logout">Logout</a>
         </nav>
     </header>
 
@@ -34,10 +40,7 @@
         <div class="panel">
             <h2>Customer Status</h2>
             <% if (customerName != null) { %>
-                <%-- INTENTIONALLY VULNERABLE FOR COURSEWORK DEMO.
-                     Part A section 4 / Part B demo: Stored XSS.
-                     Stored customer input is rendered without HTML encoding. --%>
-                <p class="message message-success">Customer <strong><%= customerName %></strong> added successfully.</p>
+                <p class="message message-success">Customer <strong><%= StringEscapeUtils.escapeHtml4(customerName) %></strong> added successfully.</p>
             <% } else { %>
                 <p class="muted">No customer was added in this session.</p>
             <% } %>

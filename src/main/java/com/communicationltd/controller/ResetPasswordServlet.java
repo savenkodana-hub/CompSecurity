@@ -2,6 +2,7 @@ package com.communicationltd.controller;
 
 import com.communicationltd.security.PasswordHasher;
 import com.communicationltd.security.PasswordValidator;
+import com.communicationltd.security.SecurityUtil;
 import com.communicationltd.config.PasswordPolicyConfig;
 import com.communicationltd.util.DatabaseConnection;
 
@@ -9,9 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.sql.*;
-import java.util.Base64;
 
 @WebServlet("/reset-password")
 public class ResetPasswordServlet extends HttpServlet {
@@ -30,7 +29,7 @@ public class ResetPasswordServlet extends HttpServlet {
         String newPassword = request.getParameter("newPassword");
         String confirmPassword = request.getParameter("confirmPassword");
 
-        if (!newPassword.equals(confirmPassword)) {
+        if (newPassword == null || !newPassword.equals(confirmPassword)) {
             showResetPasswordError(request, response, "Passwords do not match");
             return;
         }
@@ -70,14 +69,14 @@ public class ResetPasswordServlet extends HttpServlet {
 
                 String checkHash = PasswordHasher.hash(newPassword, oldSalt);
 
-                if (oldHash.equals(checkHash)) {
+                if (SecurityUtil.constantTimeEquals(oldHash, checkHash)) {
                     showResetPasswordError(request, response, "You cannot use one of your last 3 passwords");
                     return;
                 }
             }
 
             String checkCurrent = PasswordHasher.hash(newPassword, currentSalt);
-            if (currentHash.equals(checkCurrent)) {
+            if (SecurityUtil.constantTimeEquals(currentHash, checkCurrent)) {
                 showResetPasswordError(request, response, "You cannot use your current password");
                 return;
             }
@@ -90,7 +89,7 @@ public class ResetPasswordServlet extends HttpServlet {
             saveHistory.setString(3, currentSalt);
             saveHistory.executeUpdate();
 
-            String newSalt = generateSalt();
+            String newSalt = PasswordHasher.generateSalt();
             String newHash = PasswordHasher.hash(newPassword, newSalt);
 
             PreparedStatement updateUser = conn.prepareStatement(
@@ -124,9 +123,4 @@ public class ResetPasswordServlet extends HttpServlet {
         request.getRequestDispatcher("/new-password.jsp").forward(request, response);
     }
 
-    private static String generateSalt() {
-        byte[] salt = new byte[16];
-        new SecureRandom().nextBytes(salt);
-        return Base64.getEncoder().encodeToString(salt);
-    }
 }

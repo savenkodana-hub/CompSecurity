@@ -1,7 +1,9 @@
 package com.communicationltd.controller;
 
 import com.communicationltd.dao.CustomerDao;
+import com.communicationltd.security.InputSanitizer;
 
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
@@ -10,7 +12,7 @@ import java.io.IOException;
 public class CustomerServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+            throws IOException, ServletException {
 
         HttpSession session = request.getSession(false);
 
@@ -21,14 +23,35 @@ public class CustomerServlet extends HttpServlet {
 
         String email = (String) session.getAttribute("email");
 
-        String customerName = request.getParameter("customerName");
-        String phone = request.getParameter("phone");
-        String address = request.getParameter("address");
-        int packageId = Integer.parseInt(request.getParameter("packageId"));
-        int sectorId = Integer.parseInt(request.getParameter("sectorId"));
+        String customerName = InputSanitizer.sanitize(request.getParameter("customerName"));
+        String phone = InputSanitizer.normalize(request.getParameter("phone"));
+        String address = InputSanitizer.sanitize(request.getParameter("address"));
 
-        // INTENTIONALLY VULNERABLE FOR COURSEWORK DEMO.
-        // Part A section 4 / Part B demo: raw customer fields are passed through for SQLi/XSS demos.
+        if (!InputSanitizer.isReasonableText(customerName, 80)
+                || !phone.matches("^[0-9+\\- ]{7,20}$")
+                || !InputSanitizer.isReasonableText(address, 160)) {
+            request.setAttribute("customerError", "Customer details are invalid");
+            request.getRequestDispatcher("/customer-details.jsp").forward(request, response);
+            return;
+        }
+
+        int packageId;
+        int sectorId;
+        try {
+            packageId = Integer.parseInt(request.getParameter("packageId"));
+            sectorId = Integer.parseInt(request.getParameter("sectorId"));
+        } catch (NumberFormatException e) {
+            request.setAttribute("customerError", "Selected package or sector is invalid");
+            request.getRequestDispatcher("/customer-details.jsp").forward(request, response);
+            return;
+        }
+
+        if (packageId < 1 || packageId > 3 || sectorId < 1 || sectorId > 4) {
+            request.setAttribute("customerError", "Selected package or sector is invalid");
+            request.getRequestDispatcher("/customer-details.jsp").forward(request, response);
+            return;
+        }
+
         CustomerDao.addCustomer(email, customerName, phone, address, packageId, sectorId);
 
         session.setAttribute("customerName", customerName);

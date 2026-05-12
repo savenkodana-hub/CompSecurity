@@ -1,4 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="org.apache.commons.text.StringEscapeUtils" %>
+<%
+    if (session == null || session.getAttribute("email") == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+%>
 <html>
 <head>
     <title>Customer Details</title>
@@ -11,6 +18,14 @@
         <h1>Add Customer</h1>
         <p class="brand-subtitle">Save customer details and select a package</p>
     </div>
+
+    <%
+        String customerError = (String) request.getAttribute("customerError");
+    %>
+
+    <% if (customerError != null) { %>
+        <p class="message message-error"><%= StringEscapeUtils.escapeHtml4(customerError) %></p>
+    <% } %>
 
     <form action="<%= request.getContextPath() %>/customer-details" method="post">
         <div class="form-group">
