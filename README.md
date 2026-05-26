@@ -1,5 +1,13 @@
 # Communication LTD Cyber Project - Secure Version
 
+## Team Members
+
+- Full Name: דנה סבנקו | ID: 323082115
+- Full Name: ענבר רחנמי | ID: 318913670
+- Full Name: רותם אלוני | ID: 213388028
+- Full Name: חנה שמואל | ID: 214275703
+- Full Name: איתי קריטמלר | ID: 322567264
+
 This repository is the secure, non-vulnerable version of the Communication LTD coursework project.
 
 It implements the Part A secure development requirements and also demonstrates the secure fixes required for Part B:
