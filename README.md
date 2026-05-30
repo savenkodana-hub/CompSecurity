@@ -1,4 +1,4 @@
-# Communication LTD Cyber Project - Secure Version
+# Communication LTD Cyber Project 
 
 ## Team Members
 
@@ -8,85 +8,281 @@
 - Full Name: חנה שמואל | ID: 214275703
 - Full Name: איתי קריטמלר | ID: 322567264
 
-This repository is the secure, non-vulnerable version of the Communication LTD coursework project.
 
-It implements the Part A secure development requirements and also demonstrates the secure fixes required for Part B:
+## Project Description
 
-- Stored XSS protection using HTML/special-character encoding.
-- SQL Injection protection using `PreparedStatement` parameters.
+This repository contains the secure version of the Communication LTD Cyber Security project.
 
-SQL Injection and XSS payload instructions are intentionally not included in this secure repository. The intentionally vulnerable demo version is maintained in a separate repository.
+The project implements all Part A secure development requirements and includes the secure fixes required for Part B:
 
-## How to run locally
+* SQL Injection prevention using PreparedStatement.
+* Stored XSS prevention using HTML encoding.
+* Password hashing using HMAC-SHA256 and per-password salts.
+* Password history enforcement.
+* Login attempt limitation and account lockout.
+* Password reset via email verification code.
 
-1. Install Java 17 and Maven.
-2. Copy local config templates:
-   - `src/main/resources/mail-config.example.properties` to `src/main/resources/mail-config.properties`
-   - `src/main/resources/security-config.example.properties` to `src/main/resources/security-config.properties`
-3. Fill local values only in the non-example files. Do not commit real secrets.
-4. Run:
+Two project versions were submitted:
+
+* Secure Version – contains the protected implementation with all security controls and fixes applied.
+* Vulnerable Version – contains the intentionally vulnerable implementation used to demonstrate SQL Injection and Stored XSS attacks before applying the security fixes.
+
+The intentionally vulnerable version is maintained in a separate ZIP file.
+
+---
+
+## How to Run the Project
+
+### Prerequisites
+
+* Java 17
+* Maven
+
+### Configuration
+
+All required configuration files are already included in the submitted ZIP file.
+
+No additional setup is required.
+
+Simply extract the project and run it using Maven:
 
 ```bash
 mvn jetty:run
 ```
 
-5. Open the app in the browser, usually:
+The application will use the included email and security configuration files automatically.
+
+```text
+src/main/resources/mail-config.properties
+src/main/resources/security-config.properties
+```
+
+### Running
+
+Run:
+
+```bash
+mvn jetty:run
+```
+
+Open:
 
 ```text
 http://localhost:8080/
 ```
 
-The database is initialized on startup. `/init-db` is also available if manual initialization is needed.
+The database is initialized automatically on startup.
 
-## Main routes
+If required, database initialization can be triggered manually using:
 
-- `/register` - creates a new user with username, email, and password.
-- `/login` - authenticates a user.
-- `/customer-details` - adds customer details after login.
-- `/dashboard.jsp` - displays the logged-in user and newly added customer.
-- `/change-password` - changes password after verifying the current password.
-- `/forgot-password` - starts password reset by email code.
-- `/verify-code` - verifies the reset code.
-- `/reset-password` - sets a new password after reset-code verification.
-- `/logout` - invalidates the current session.
+```text
+/init-db
+```
 
-## Security features
+---
 
-- Password policy is read from `src/main/resources/password-config.properties`.
-- Passwords are stored with HMAC-SHA256 and a per-password salt.
-- HMAC secret is loaded from `HMAC_SECRET` or `src/main/resources/security-config.properties`.
-- Password history prevents reuse of the last configured number of passwords. The current config uses 3.
-- Login attempt limit is read from `login.max.attempts`. The current config uses 3.
-- Users are locked after the configured number of failed login attempts.
-- Failed login counter resets after a successful login.
-- Successful login renews the HTTP session to reduce session fixation risk.
-- SQL access in the secure implementation uses `PreparedStatement` parameters for user-controlled values.
-- Dashboard output is HTML-encoded to prevent stored XSS.
-- Forgot-password reset values are SHA-1 based, emailed to the user, stored as hashed values, and limited to a short validity window.
-- Runtime database and local secret config files are ignored by git.
+## How to Use the System
 
-## Configuration files
+### Register
 
-Tracked templates:
+1. Open:
 
-- `src/main/resources/mail-config.example.properties`
-- `src/main/resources/security-config.example.properties`
-- `src/main/resources/password-config.properties`
+```text
+/register
+```
 
-Local files not tracked:
+2. Enter:
 
-- `communication_ltd.db`
-- `src/main/resources/mail-config.properties`
-- `src/main/resources/security-config.properties`
+   * Username
+   * Email
+   * Password
 
-Use the `.example.properties` files as templates and keep real secrets only in the local ignored files or environment variables:
+3. Submit the form.
 
-- `MAIL_USERNAME`
-- `MAIL_APP_PASSWORD`
-- `MAIL_SMTP_HOST`
-- `MAIL_SMTP_PORT`
-- `HMAC_SECRET`
+The system validates the password according to the configured password policy and stores a hashed password with a unique salt.
+
+---
+
+### Login
+
+1. Open:
+
+```text
+/login
+```
+
+2. Enter email and password.
+
+3. Submit the form.
+
+After successful authentication a new HTTP session is created.
+
+After the configured number of failed login attempts the account is locked.
+
+---
+
+### Add Customer
+
+1. Log in.
+2. Navigate to:
+
+```text
+/customer-details
+```
+
+3. Enter customer details.
+4. Submit the form.
+
+The customer information is stored in the database and displayed on the dashboard.
+
+---
+
+### Dashboard
+
+Open:
+
+```text
+/dashboard.jsp
+```
+
+The dashboard displays:
+
+* Logged-in username
+* Customer added during the current session
+* Password change notifications
+
+All displayed user-generated content is HTML encoded.
+
+---
+
+### Change Password
+
+1. Open:
+
+```text
+/change-password
+```
+
+2. Enter:
+
+   * Current password
+   * New password
+
+3. Submit the form.
+
+The system validates password policy requirements and prevents reuse of recently used passwords.
+
+---
+
+### Forgot Password
+
+1. Open:
+
+```text
+/forgot-password
+```
+
+2. Enter the registered email address.
+
+3. A reset code is sent to the user's email.
+
+---
+
+### Verify Reset Code
+
+1. Open:
+
+```text
+/verify-code
+```
+
+2. Enter:
+
+   * Email
+   * Verification code
+
+3. Submit.
+
+If the code is valid the user is redirected to password reset.
+
+---
+
+### Reset Password
+
+1. Open:
+
+```text
+/reset-password
+```
+
+2. Enter:
+
+   * New password
+   * Confirm password
+
+3. Submit.
+
+The password is updated and the reset token is invalidated.
+
+---
+
+### Logout
+
+Open:
+
+```text
+/logout
+```
+
+The current session is invalidated and the user is returned to the login page.
+
+---
+
+## Security Features
+
+* Password policy loaded from `password-config.properties`
+* HMAC-SHA256 password hashing
+* Unique salt per password
+* Password history protection
+* Login lockout after repeated failures
+* Session renewal after successful login
+* Email-based password reset
+* Sensitive configuration excluded from Git
+
+### Part B Vulnerabilities Demonstrated
+
+This repository intentionally contains vulnerable implementations for educational purposes:
+
+* SQL Injection vulnerability caused by constructing SQL queries using string concatenation instead of PreparedStatement parameters.
+* Stored XSS vulnerability caused by displaying user-controlled input without HTML encoding.
+* The vulnerable implementation is used only to demonstrate common web application security risks and compare them with the secure version.
+
+---
+
+## Configuration Files
+
+Tracked:
+
+```text
+src/main/resources/mail-config.example.properties
+src/main/resources/security-config.example.properties
+src/main/resources/password-config.properties
+```
+
+```text
+```
+
+---
 
 ## Notes
 
-This repository is for the secure Part A implementation and the secure Part B fixes only. Attack-demonstration routes, payload instructions, and intentionally vulnerable code are not included here.
+To demonstrate the vulnerable behavior, use the separate vulnerable repository provided for Part B.
+
+Run the vulnerable version using the same setup process described above, then:
+
+* Demonstrate SQL Injection using the intentionally vulnerable login or customer-related functionality.
+* Demonstrate Stored XSS by submitting customer data containing HTML/JavaScript content and viewing it on the dashboard.
+* Compare the behavior with this secure version, where SQL Injection is prevented using PreparedStatement and Stored XSS is prevented using HTML encoding.
+
+The secure repository contains only the protected implementation and is intended for demonstrating the applied security controls and fixes.
+
